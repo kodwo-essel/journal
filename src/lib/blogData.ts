@@ -19,9 +19,10 @@ export const getBlogBySlug = (slug: string): BlogPost | undefined => {
 };
 
 export const getPaginatedBlogs = (page: number, postsPerPage: number) => {
+  const sortedBlogs = [...blogsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const startIndex = (page - 1) * postsPerPage;
   const endIndex = startIndex + postsPerPage;
-  const paginatedPosts = blogsData.slice(startIndex, endIndex);
+  const paginatedPosts = sortedBlogs.slice(startIndex, endIndex);
   
   return {
     posts: paginatedPosts,

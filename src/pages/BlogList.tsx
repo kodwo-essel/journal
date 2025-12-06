@@ -9,10 +9,12 @@ export default function BlogList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
     fetchPosts();
-  }, [currentPage]);
+  }, [currentPage, searchQuery]);
 
   useEffect(() => {
     document.title = 'Journal Entries - Jimmy Essel';
@@ -43,7 +45,11 @@ export default function BlogList() {
   function fetchPosts() {
     setLoading(true);
     const paginationData = getPaginatedBlogs(currentPage, POSTS_PER_PAGE);
-    setPosts(paginationData.posts);
+    const filteredPosts = paginationData.posts.filter(post => 
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setPosts(filteredPosts);
     setTotalPages(paginationData.totalPages);
     setLoading(false);
   }
@@ -61,19 +67,42 @@ export default function BlogList() {
   return (
     <div className="min-h-screen bg-white">
       <header className="w-full py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1
-            className="text-5xl md:text-6xl font-normal mb-4 text-black tracking-tight"
-            style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}
-          >
-            Journal Entries
-          </h1>
-          <h2
-            className="text-lg md:text-xl font-light text-neutral-600"
-            style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}
-          >
-            Thoughts, reflections, and observations
-          </h2>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 text-center">
+              <h1
+                className="text-5xl md:text-6xl font-normal mb-4 text-black tracking-tight"
+                style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}
+              >
+                Journal Entries
+              </h1>
+              <h2
+                className="text-lg md:text-xl font-light text-neutral-600"
+                style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}
+              >
+                Thoughts, reflections, and observations
+              </h2>
+            </div>
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="w-10 h-10 flex items-center justify-center border border-neutral-200 hover:border-black transition-colors cursor-pointer"
+            >
+              <i className={showSearch ? "ri-close-line" : "ri-search-line"}></i>
+            </button>
+          </div>
+          {showSearch && (
+            <div className="mt-4">
+              <input
+                type="text"
+                placeholder="Search journals..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 border border-neutral-200 focus:border-black focus:outline-none transition-colors"
+                style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}
+                autoFocus
+              />
+            </div>
+          )}
         </div>
       </header>
 
@@ -92,7 +121,7 @@ export default function BlogList() {
                     </h3>
                   </div>
                   <p
-                    className="text-xl text-neutral-700 mb-4 leading-relaxed"
+                    className="text-2xl text-neutral-700 mb-4 leading-relaxed"
                     style={{ fontFamily: 'Caveat, cursive' }}
                   >
                     {post.excerpt}

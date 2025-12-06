@@ -154,7 +154,7 @@ export default function BlogDetail() {
         <div className="max-w-2xl mx-auto">
           <article className="space-y-8 text-black" style={{ fontFamily: 'Caveat, cursive' }}>
             {post.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="text-2xl leading-relaxed">
+              <p key={index} className="text-3xl leading-relaxed">
                 {paragraph}
               </p>
             ))}

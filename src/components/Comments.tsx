@@ -131,7 +131,7 @@ export default function Comments({ blogSlug }: CommentsProps) {
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] text-neutral-400" style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}>
-                    {new Date(comment.createdAt).toLocaleDateString()}
+                    {new Date(comment.created_at).toLocaleDateString()}
                   </p>
                   {canEditComment(comment) && (
                     <div className="flex gap-1">

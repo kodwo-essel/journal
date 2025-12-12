@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BlogPost, getPaginatedBlogs } from '../lib/blogData';
+import { BlogPost, getPaginatedBlogs, searchBlogs } from '../lib/blogData';
 import NightModeToggle from '../components/NightModeToggle';
+import Loader from '../components/Loader';
 
 const POSTS_PER_PAGE = 5;
 
@@ -43,32 +44,41 @@ export default function BlogList() {
     });
   }, []);
 
-  function fetchPosts() {
+  async function fetchPosts() {
     setLoading(true);
-    const paginationData = getPaginatedBlogs(currentPage, POSTS_PER_PAGE);
-    const filteredPosts = paginationData.posts.filter(post => 
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setPosts(filteredPosts);
-    setTotalPages(paginationData.totalPages);
+    try {
+      if (searchQuery) {
+        const searchResults = await searchBlogs(searchQuery);
+        setPosts(searchResults);
+        setTotalPages(1);
+      } else {
+        const paginationData = await getPaginatedBlogs(currentPage, POSTS_PER_PAGE);
+        setPosts(paginationData.posts);
+        setTotalPages(paginationData.totalPages);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
     setLoading(false);
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-neutral-600" style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}>
-          Loading...
-        </p>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
     <div className="min-h-screen bg-white">
       <header className="w-full py-16 px-6">
         <div className="max-w-4xl mx-auto">
+          <div className="flex justify-end gap-2 mb-4 lg:hidden">
+            <NightModeToggle />
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="w-10 h-10 flex items-center justify-center border border-neutral-200 hover:border-black transition-colors cursor-pointer"
+            >
+              <i className={showSearch ? "ri-close-line" : "ri-search-line"}></i>
+            </button>
+          </div>
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 text-center">
               <h1
@@ -84,7 +94,7 @@ export default function BlogList() {
                 Thoughts, reflections, and observations
               </h2>
             </div>
-            <div className="flex gap-2">
+            <div className="hidden lg:flex gap-2">
               <NightModeToggle />
               <button
                 onClick={() => setShowSearch(!showSearch)}

@@ -4,6 +4,7 @@ import { BlogPost, getBlogBySlug } from '../lib/blogData';
 import Reactions from '../components/Reactions';
 import Comments from '../components/Comments';
 import NightModeToggle from '../components/NightModeToggle';
+import Loader from '../components/Loader';
 
 export default function BlogDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,12 +16,16 @@ export default function BlogDetail() {
     fetchPost();
   }, [slug]);
 
-  function fetchPost() {
+  async function fetchPost() {
     if (!slug) return;
 
     setLoading(true);
-    const foundPost = getBlogBySlug(slug);
-    setPost(foundPost || null);
+    try {
+      const foundPost = await getBlogBySlug(slug);
+      setPost(foundPost);
+    } catch (error) {
+      console.error('Error fetching post:', error);
+    }
     setLoading(false);
   }
 
@@ -85,13 +90,7 @@ export default function BlogDetail() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-neutral-600" style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}>
-          Loading...
-        </p>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!post) {
@@ -160,11 +159,11 @@ export default function BlogDetail() {
                 </div>
               </header>
               <article className="space-y-8 text-black" style={{ fontFamily: 'Caveat, cursive' }}>
-                {post.content.split('\n\n').map((paragraph, index) => (
+                {post.content?.split('\n\n').map((paragraph, index) => (
                   <p key={index} className="text-3xl leading-relaxed">
                     {paragraph}
                   </p>
-                ))}
+                )) || null}
               </article>
               
               <div className="mt-16 pt-8 border-t border-neutral-200">

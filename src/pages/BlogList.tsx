@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BlogPost, getPaginatedBlogs } from '../lib/blogData';
+import NightModeToggle from '../components/NightModeToggle';
 
 const POSTS_PER_PAGE = 5;
 
@@ -83,12 +84,15 @@ export default function BlogList() {
                 Thoughts, reflections, and observations
               </h2>
             </div>
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="w-10 h-10 flex items-center justify-center border border-neutral-200 hover:border-black transition-colors cursor-pointer"
-            >
-              <i className={showSearch ? "ri-close-line" : "ri-search-line"}></i>
-            </button>
+            <div className="flex gap-2">
+              <NightModeToggle />
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className="w-10 h-10 flex items-center justify-center border border-neutral-200 hover:border-black transition-colors cursor-pointer"
+              >
+                <i className={showSearch ? "ri-close-line" : "ri-search-line"}></i>
+              </button>
+            </div>
           </div>
           {showSearch && (
             <div className="mt-4">

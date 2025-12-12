@@ -16,6 +16,7 @@ export default function Comments({ blogSlug }: CommentsProps) {
   const [newComment, setNewComment] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [userComments, setUserComments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadComments();
@@ -25,6 +26,15 @@ export default function Comments({ blogSlug }: CommentsProps) {
     try {
       const data = await getComments(blogSlug);
       setComments(Array.isArray(data) ? data : []);
+      
+      // Check which comments user can edit
+      const editableIds = new Set<string>();
+      for (const comment of data || []) {
+        if (await canEditComment(comment)) {
+          editableIds.add(comment.id);
+        }
+      }
+      setUserComments(editableIds);
     } catch (error) {
       console.error('Error loading comments:', error);
     }
@@ -133,7 +143,7 @@ export default function Comments({ blogSlug }: CommentsProps) {
                   <p className="text-[10px] text-neutral-400" style={{ fontFamily: "'Bai Jamjuree', sans-serif" }}>
                     {new Date(comment.created_at).toLocaleDateString()}
                   </p>
-                  {canEditComment(comment) && (
+                  {userComments.has(comment.id) && (
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleEdit(comment)}

@@ -1,27 +1,20 @@
 import { supabase } from './supabase';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
-const getBrowserFingerprint = (): string => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx?.fillText('fingerprint', 10, 10);
-  const canvasData = canvas.toDataURL();
+let fpPromise: Promise<any> | null = null;
+
+const getBrowserFingerprint = async (): Promise<string> => {
+  if (!fpPromise) {
+    fpPromise = FingerprintJS.load();
+  }
   
-  const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
-    navigator.platform,
-    navigator.hardwareConcurrency || 0,
-    new Date().getTimezoneOffset(),
-    navigator.cookieEnabled,
-    navigator.doNotTrack || 'unknown',
-    canvasData.slice(-50)
-  ].join('|');
-  
-  return btoa(fingerprint).slice(0, 20);
+  const fp = await fpPromise;
+  const result = await fp.get();
+  return result.visitorId;
 };
 
 export const addReaction = async (blogSlug: string, reactionType: string) => {
-  const fingerprint = getBrowserFingerprint();
+  const fingerprint = await getBrowserFingerprint();
   
   // Check if user already reacted with this emoji
   const { data: existing } = await supabase
@@ -51,7 +44,7 @@ export const addReaction = async (blogSlug: string, reactionType: string) => {
 };
 
 export const getReactions = async (blogSlug: string) => {
-  const fingerprint = getBrowserFingerprint();
+  const fingerprint = await getBrowserFingerprint();
   
   const { data: reactions } = await supabase
     .from('reactions')
@@ -72,17 +65,18 @@ export const getReactions = async (blogSlug: string) => {
 };
 
 export const addComment = async (blogSlug: string, content: string) => {
+  const fingerprint = await getBrowserFingerprint();
   await supabase
     .from('comments')
     .insert({
       blog_slug: blogSlug,
       content,
-      fingerprint: getBrowserFingerprint()
+      fingerprint
     });
 };
 
 export const updateComment = async (commentId: string, newContent: string) => {
-  const fingerprint = getBrowserFingerprint();
+  const fingerprint = await getBrowserFingerprint();
   
   const { error } = await supabase
     .from('comments')
@@ -94,7 +88,7 @@ export const updateComment = async (commentId: string, newContent: string) => {
 };
 
 export const deleteComment = async (commentId: string) => {
-  const fingerprint = getBrowserFingerprint();
+  const fingerprint = await getBrowserFingerprint();
   
   const { error } = await supabase
     .from('comments')
@@ -115,6 +109,7 @@ export const getComments = async (blogSlug: string) => {
   return comments || [];
 };
 
-export const canEditComment = (comment: any): boolean => {
-  return comment.fingerprint === getBrowserFingerprint();
+export const canEditComment = async (comment: any): Promise<boolean> => {
+  const fingerprint = await getBrowserFingerprint();
+  return comment.fingerprint === fingerprint;
 };

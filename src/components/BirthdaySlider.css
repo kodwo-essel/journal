@@ -1,0 +1,341 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #000;
+  overflow: hidden;
+}
+
+.theater {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  position: relative;
+}
+
+.stage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%) brightness(0.4);
+  transition: all 1s ease;
+  animation: ken-burns 20s ease-in-out infinite alternate;
+}
+
+@keyframes ken-burns {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.1) rotate(1deg); }
+}
+
+.spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, transparent 20%, rgba(0,0,0,0.8) 70%);
+  z-index: 2;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%);
+  z-index: 3;
+}
+
+.content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  max-width: 1200px;
+  width: 90%;
+  display: flex;
+  gap: 80px;
+  align-items: center;
+}
+
+.left-side {
+  flex: 1;
+}
+
+.right-side {
+  flex: 1;
+}
+
+.number {
+  font-size: 80px;
+  font-weight: 100;
+  color: rgba(255,255,255,0.15);
+  line-height: 0.8;
+  margin-bottom: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  animation: slide-up 1s ease-out;
+}
+
+.explanation {
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.7;
+  text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+  animation: fade-in 1s ease-out 0.3s both;
+  white-space: pre-line;
+}
+
+.controls {
+  display: flex;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.controls button {
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(20px);
+  border-radius: 50%;
+}
+
+.controls button:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.8);
+  transform: scale(1.1);
+}
+
+.progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  z-index: 10;
+}
+
+.bar {
+  height: 100%;
+  background: linear-gradient(90deg, #fff, rgba(255,255,255,0.8));
+  transition: width 0.8s ease;
+  box-shadow: 0 0 20px rgba(255,255,255,0.5);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.start-screen,
+.end-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+}
+
+.start-title,
+.end-title {
+  font-size: clamp(48px, 8vw, 120px);
+  font-weight: 100;
+  color: #fff;
+  line-height: 0.9;
+  margin-bottom: 30px;
+  letter-spacing: -2px;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  animation: fade-in 2s ease-out;
+}
+
+.start-subtitle,
+.end-subtitle {
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 300;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 50px;
+  animation: fade-in 2s ease-out 0.5s both;
+}
+
+.start-button,
+.restart-button {
+  padding: 20px 40px;
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(20px);
+  text-transform: uppercase;
+  animation: fade-in 2s ease-out 1s both;
+}
+
+.end-buttons {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+}
+
+.home-button {
+  padding: 20px 40px;
+  background: transparent;
+  border: 2px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(20px);
+  text-transform: uppercase;
+  animation: fade-in 2s ease-out 1s both;
+}
+
+.home-button:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.9);
+  transform: scale(1.05);
+}
+
+.home-link {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.home-link:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.9);
+}
+
+.start-button:hover,
+.restart-button:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.8);
+  transform: scale(1.05);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  body {
+    overflow-y: auto;
+  }
+  
+  .theater {
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .stage {
+    overflow: visible;
+    min-height: 100vh;
+  }
+  
+  .hero-image {
+    position: fixed;
+    height: 100vh;
+    min-height: 100%;
+  }
+  
+  .spotlight {
+    position: fixed;
+    height: 100vh;
+    min-height: 100%;
+  }
+  
+  .overlay {
+    position: fixed;
+    height: 100vh;
+    min-height: 100%;
+  }
+  
+  .content {
+    flex-direction: column;
+    gap: 30px;
+    width: 95%;
+    top: 40px;
+    transform: translateX(-50%);
+    padding-bottom: 120px;
+    position: relative;
+  }
+  
+  .left-side,
+  .right-side {
+    text-align: center;
+  }
+  
+  .number {
+    font-size: 60px;
+  }
+  
+  .explanation {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .controls {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0;
+    z-index: 20;
+  }
+  
+  .controls button {
+    width: 60px;
+    height: 60px;
+    background: rgba(0,0,0,0.8);
+    font-size: 20px;
+  }
+}

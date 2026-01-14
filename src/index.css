@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  height: 100%;
+  overflow-y: auto;
+}
+
 .night-mode {
   background-color: #1a1a1a !important;
   color: #e5e5e5 !important;

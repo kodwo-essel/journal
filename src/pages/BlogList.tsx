@@ -4,7 +4,7 @@ import { BlogPost, getPaginatedBlogs, searchBlogs } from '../lib/blogData';
 import NightModeToggle from '../components/NightModeToggle';
 import Loader from '../components/Loader';
 
-const POSTS_PER_PAGE = 5;
+const POSTS_PER_PAGE = 2;
 
 export default function BlogList() {
   const [posts, setPosts] = useState<BlogPost[]>([]);

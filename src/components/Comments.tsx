@@ -8,7 +8,8 @@ interface CommentsProps {
 interface Comment {
   id: string;
   content: string;
-  createdAt: string;
+  created_at: string;
+  fingerprint: string;
 }
 
 export default function Comments({ blogSlug }: CommentsProps) {
@@ -26,8 +27,7 @@ export default function Comments({ blogSlug }: CommentsProps) {
     try {
       const data = await getComments(blogSlug);
       setComments(Array.isArray(data) ? data : []);
-      
-      // Check which comments user can edit
+
       const editableIds = new Set<string>();
       for (const comment of data || []) {
         if (await canEditComment(comment)) {
@@ -53,16 +53,16 @@ export default function Comments({ blogSlug }: CommentsProps) {
     }
   };
 
-  const handleEdit = (comment: any) => {
+  const handleEdit = (comment: Comment) => {
     setEditingId(comment.id);
     setEditContent(comment.content);
   };
 
   const handleUpdate = async (commentId: string) => {
     if (!editContent.trim()) return;
-    
+
     try {
-      const success = await updateComment(commentId, editContent.trim());
+      const success = await updateComment(commentId, editContent.trim(), blogSlug);
       if (success) {
         setEditingId(null);
         setEditContent('');
@@ -75,7 +75,7 @@ export default function Comments({ blogSlug }: CommentsProps) {
 
   const handleDelete = async (commentId: string) => {
     try {
-      const success = await deleteComment(commentId);
+      const success = await deleteComment(commentId, blogSlug);
       if (success) {
         loadComments();
       }

@@ -135,8 +135,8 @@ export default function BlogList() {
                     </h3>
                   </div>
                   <p
-                    className="text-2xl text-neutral-700 mb-4 leading-relaxed"
-                    style={{ fontFamily: 'Caveat, cursive' }}
+                    className="text-base text-neutral-600 mb-4 leading-relaxed text-justify"
+                    style={{ fontFamily: 'Lora, Georgia, serif' }}
                   >
                     {post.excerpt}
                   </p>

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import blogsData from '../data/blogs.json';
 
 export interface BlogPost {
   id: string;
@@ -10,55 +10,41 @@ export interface BlogPost {
   read_time: string;
 }
 
+const allBlogs: BlogPost[] = blogsData as BlogPost[];
+
 export const getAllBlogs = async (): Promise<BlogPost[]> => {
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .order('date', { ascending: false });
-  
-  return data || [];
+  return [...allBlogs].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 };
 
 export const getBlogBySlug = async (slug: string): Promise<BlogPost | null> => {
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .single();
-  
-  return data;
+  return allBlogs.find((p) => p.slug === slug) ?? null;
 };
 
 export const getPaginatedBlogs = async (page: number, postsPerPage: number) => {
+  const sorted = [...allBlogs].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const totalPosts = sorted.length;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
   const startIndex = (page - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage - 1;
-  
-  const { count } = await supabase
-    .from('blog_posts')
-    .select('*', { count: 'exact', head: true });
-  
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .order('date', { ascending: false })
-    .range(startIndex, endIndex);
-  
+  const posts = sorted.slice(startIndex, startIndex + postsPerPage);
+
   return {
-    posts: data || [],
-    totalPosts: count || 0,
-    totalPages: Math.ceil((count || 0) / postsPerPage),
+    posts,
+    totalPosts,
+    totalPages,
     currentPage: page,
-    hasNextPage: endIndex < (count || 0) - 1,
-    hasPrevPage: page > 1
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
   };
 };
 
 export const searchBlogs = async (query: string): Promise<BlogPost[]> => {
-  const { data } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`)
-    .order('date', { ascending: false });
-  
-  return data || [];
+  const q = query.toLowerCase();
+  return allBlogs.filter(
+    (p) =>
+      p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q)
+  );
 };

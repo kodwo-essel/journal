@@ -1,4 +1,3 @@
-import { supabase } from './supabase';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 let fpPromise: Promise<any> | null = null;
@@ -7,109 +6,130 @@ const getBrowserFingerprint = async (): Promise<string> => {
   if (!fpPromise) {
     fpPromise = FingerprintJS.load();
   }
-  
   const fp = await fpPromise;
   const result = await fp.get();
   return result.visitorId;
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function reactionsKey(blogSlug: string) {
+  return `reactions:${blogSlug}`;
+}
+
+function commentsKey(blogSlug: string) {
+  return `comments:${blogSlug}`;
+}
+
+function readJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJSON(key: string, value: unknown) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+// ─── Reactions ─────────────────────────────────────────────────────────────────
+// Stored as: { [reactionType]: string[] }  (array of fingerprints)
+
 export const addReaction = async (blogSlug: string, reactionType: string) => {
   const fingerprint = await getBrowserFingerprint();
-  
-  // Check if user already reacted with this emoji
-  const { data: existing } = await supabase
-    .from('reactions')
-    .select('id')
-    .eq('blog_slug', blogSlug)
-    .eq('reaction_type', reactionType)
-    .eq('fingerprint', fingerprint)
-    .single();
-  
-  if (existing) {
-    // Remove reaction (unreact)
-    await supabase
-      .from('reactions')
-      .delete()
-      .eq('id', existing.id);
+  const key = reactionsKey(blogSlug);
+  const data = readJSON<Record<string, string[]>>(key, {});
+
+  const existing = data[reactionType] ?? [];
+  if (existing.includes(fingerprint)) {
+    data[reactionType] = existing.filter((f) => f !== fingerprint);
   } else {
-    // Add new reaction
-    await supabase
-      .from('reactions')
-      .insert({
-        blog_slug: blogSlug,
-        reaction_type: reactionType,
-        fingerprint
-      });
+    data[reactionType] = [...existing, fingerprint];
   }
+  writeJSON(key, data);
 };
 
 export const getReactions = async (blogSlug: string) => {
   const fingerprint = await getBrowserFingerprint();
-  
-  const { data: reactions } = await supabase
-    .from('reactions')
-    .select('reaction_type, fingerprint')
-    .eq('blog_slug', blogSlug);
-  
-  const reactionsMap: Record<string, number> = {};
+  const key = reactionsKey(blogSlug);
+  const data = readJSON<Record<string, string[]>>(key, {});
+
+  const counts: Record<string, number> = {};
   const userReactions: Record<string, boolean> = {};
-  
-  reactions?.forEach(reaction => {
-    reactionsMap[reaction.reaction_type] = (reactionsMap[reaction.reaction_type] || 0) + 1;
-    if (reaction.fingerprint === fingerprint) {
-      userReactions[reaction.reaction_type] = true;
-    }
-  });
-  
-  return { counts: reactionsMap, userReactions };
+
+  for (const [reaction, fingerprints] of Object.entries(data)) {
+    counts[reaction] = fingerprints.length;
+    userReactions[reaction] = fingerprints.includes(fingerprint);
+  }
+
+  return { counts, userReactions };
 };
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+// Stored as array of { id, blog_slug, content, fingerprint, created_at }
+
+interface StoredComment {
+  id: string;
+  blog_slug: string;
+  content: string;
+  fingerprint: string;
+  created_at: string;
+}
 
 export const addComment = async (blogSlug: string, content: string) => {
   const fingerprint = await getBrowserFingerprint();
-  await supabase
-    .from('comments')
-    .insert({
-      blog_slug: blogSlug,
-      content,
-      fingerprint
-    });
+  const key = commentsKey(blogSlug);
+  const comments = readJSON<StoredComment[]>(key, []);
+
+  const newComment: StoredComment = {
+    id: crypto.randomUUID(),
+    blog_slug: blogSlug,
+    content,
+    fingerprint,
+    created_at: new Date().toISOString(),
+  };
+
+  writeJSON(key, [newComment, ...comments]);
 };
 
-export const updateComment = async (commentId: string, newContent: string) => {
+export const updateComment = async (commentId: string, newContent: string, blogSlug: string) => {
   const fingerprint = await getBrowserFingerprint();
-  
-  const { error } = await supabase
-    .from('comments')
-    .update({ content: newContent })
-    .eq('id', commentId)
-    .eq('fingerprint', fingerprint);
-  
-  return !error;
+  const key = commentsKey(blogSlug);
+  const comments = readJSON<StoredComment[]>(key, []);
+
+  const updated = comments.map((c) =>
+    c.id === commentId && c.fingerprint === fingerprint
+      ? { ...c, content: newContent }
+      : c
+  );
+
+  const changed = updated.some(
+    (c, i) => c.content !== comments[i]?.content
+  );
+  if (changed) writeJSON(key, updated);
+  return changed;
 };
 
-export const deleteComment = async (commentId: string) => {
+export const deleteComment = async (commentId: string, blogSlug: string) => {
   const fingerprint = await getBrowserFingerprint();
-  
-  const { error } = await supabase
-    .from('comments')
-    .delete()
-    .eq('id', commentId)
-    .eq('fingerprint', fingerprint);
-  
-  return !error;
+  const key = commentsKey(blogSlug);
+  const comments = readJSON<StoredComment[]>(key, []);
+
+  const filtered = comments.filter(
+    (c) => !(c.id === commentId && c.fingerprint === fingerprint)
+  );
+  writeJSON(key, filtered);
+  return filtered.length !== comments.length;
 };
 
 export const getComments = async (blogSlug: string) => {
-  const { data: comments } = await supabase
-    .from('comments')
-    .select('*')
-    .eq('blog_slug', blogSlug)
-    .order('created_at', { ascending: false });
-  
-  return comments || [];
+  const key = commentsKey(blogSlug);
+  return readJSON<StoredComment[]>(key, []);
 };
 
-export const canEditComment = async (comment: any): Promise<boolean> => {
+export const canEditComment = async (comment: StoredComment): Promise<boolean> => {
   const fingerprint = await getBrowserFingerprint();
   return comment.fingerprint === fingerprint;
 };
